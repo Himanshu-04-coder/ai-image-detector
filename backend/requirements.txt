@@ -1,0 +1,33 @@
+# AI Image Detector - backend dependencies
+# Tested with Python 3.10+. CUDA is optional - everything works on CPU.
+
+# Web framework + ASGI server
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+
+# Pydantic v2 (FastAPI 0.115+ depends on it)
+pydantic==2.9.2
+
+# Database
+SQLAlchemy==2.0.35
+
+# Deep learning
+# NOTE: pin torch + torchvision to a pair that exists on PyPI for your
+# Python/OS. The pair below (2.13.0 / 0.28.0) is the latest stable
+# combination. If pip complains about CUDA vs CPU, install the correct
+# build from https://pytorch.org/get-started/locally/ first, then
+# re-run `pip install -r requirements.txt` (torch will already be
+# satisfied and pip will skip it).
+torch==2.13.0
+torchvision==0.28.0
+
+# Image IO + preprocessing
+# numpy>=2.0 ships prebuilt Windows wheels for Python 3.13, which avoids
+# needing a C compiler (older numpy versions try to build from source on
+# machines with an old gcc and fail). Pin >=2.0,<3 for broad compatibility.
+Pillow==10.4.0
+opencv-python-headless==4.10.0.84
+numpy>=2.0,<3.0
+
+# (Optional) for serving large uploads faster in production
+# python-multipart==0.0.12
