@@ -83,7 +83,10 @@ ALLOWED_CONTENT_TYPES = {
     "image/bmp",
     "image/tiff",
 }
-MAX_UPLOAD_BYTES = 20 * 1024 * 1024  # 20MB cap to avoid OOMing on huge images
+# 10MB cap. The frontend also enforces this (see MAX_UPLOAD_BYTES in
+# frontend/src/api/client.js) so users get a friendly toast before the
+# request goes out. Keep the two values in sync if you change either.
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 
 
 # ---------------------------------------------------------------
@@ -199,11 +202,13 @@ async def _read_and_validate_upload(file: UploadFile) -> bytes:
     Raises HTTPException(400/413/415) with descriptive messages.
     """
     if file.content_type not in ALLOWED_CONTENT_TYPES:
+        friendly_types = "JPG, PNG, WebP, BMP, TIFF"
+        ctype = file.content_type or "(none)"
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail=(
-                f"Unsupported file type: {file.content_type!r}. "
-                f"Allowed: {sorted(ALLOWED_CONTENT_TYPES)}"
+                f"Unsupported file type '{ctype}'. "
+                f"Please upload an image ({friendly_types})."
             ),
         )
 
@@ -214,11 +219,13 @@ async def _read_and_validate_upload(file: UploadFile) -> bytes:
             detail="Uploaded file is empty.",
         )
     if len(contents) > MAX_UPLOAD_BYTES:
+        size_mb = len(contents) / (1024 * 1024)
+        max_mb = MAX_UPLOAD_BYTES / (1024 * 1024)
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail=(
-                f"File too large ({len(contents)} bytes). "
-                f"Max allowed: {MAX_UPLOAD_BYTES} bytes."
+                f"File too large ({size_mb:.1f}MB). "
+                f"Maximum allowed size is {max_mb:.0f}MB."
             ),
         )
 
@@ -252,7 +259,7 @@ async def predict(file: UploadFile = File(...)):
     Errors:
         415 - wrong content type
         400 - empty / corrupt image
-        413 - file exceeds 20MB
+        413 - file exceeds 10MB
         500 - model not loaded or unexpected failure
     """
     contents = await _read_and_validate_upload(file)

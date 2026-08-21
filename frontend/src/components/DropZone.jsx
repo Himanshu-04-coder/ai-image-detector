@@ -1,0 +1,100 @@
+import { useRef, useState } from 'react';
+import { Upload, ImagePlus } from 'lucide-react';
+import { cn } from '../lib/utils';
+import { validateImageFile } from '../lib/validation';
+import notify from '../lib/toast';
+
+/**
+ * Reusable drop zone.
+ *  - `multiple`: accepts multiple files (batch)
+ *  - `onFiles`:  callback with File[]
+ *  - `accept`:   e.g. "image/*"
+ *  - `label`:    helper text inside the dashed area
+ *  - `validate`: if true (default) we run client-side size/type checks and
+ *                toast a friendly error for any rejected file. The check is
+ *                a UX nicety - the backend re-validates too.
+ */
+export default function DropZone({
+  multiple = false,
+  onFiles,
+  accept = 'image/*',
+  label = 'Drag & drop an image here, or click to browse',
+  validate = true,
+}) {
+  const inputRef = useRef(null);
+  const [over, setOver] = useState(false);
+
+  function pick() {
+    inputRef.current?.click();
+  }
+
+  function handleFiles(fileList) {
+    if (!fileList || !fileList.length) return;
+    let files = Array.from(fileList);
+
+    if (validate) {
+      const accepted = [];
+      files.forEach((f) => {
+        const reason = validateImageFile(f);
+        if (reason) {
+          notify.error(`${f.name}: ${reason}`);
+        } else {
+          accepted.push(f);
+        }
+      });
+      files = accepted;
+      if (files.length === 0) return;
+    }
+
+    onFiles(multiple ? files : [files[0]]);
+  }
+
+  function onDrop(e) {
+    e.preventDefault();
+    setOver(false);
+    handleFiles(e.dataTransfer.files);
+  }
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={pick}
+      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && pick()}
+      onDragOver={(e) => { e.preventDefault(); setOver(true); }}
+      onDragLeave={() => setOver(false)}
+      onDrop={onDrop}
+      className={cn(
+        'group cursor-pointer rounded-2xl border-2 border-dashed p-10',
+        'flex flex-col items-center justify-center text-center',
+        'transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500',
+        over
+          ? 'border-brand-500 bg-brand-50/60 dark:bg-brand-900/20'
+          : 'border-surface-300 dark:border-surface-600 '
+          + 'bg-surface-50 dark:bg-surface-800/40 '
+          + 'hover:border-brand-400 hover:bg-brand-50/40 '
+          + 'dark:hover:bg-brand-900/10'
+      )}
+    >
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        multiple={multiple}
+        className="hidden"
+        onChange={(e) => handleFiles(e.target.files)}
+      />
+      <div className="w-14 h-14 rounded-2xl grid place-items-center mb-4
+                      bg-white dark:bg-surface-800
+                      border border-surface-200 dark:border-surface-700
+                      text-brand-600 dark:text-brand-300
+                      group-hover:scale-105 transition-transform">
+        {multiple ? <ImagePlus className="w-7 h-7" /> : <Upload className="w-7 h-7" />}
+      </div>
+      <div className="text-sm font-medium">{label}</div>
+      <div className="mt-1 text-xs text-surface-500 dark:text-surface-400">
+        {multiple ? 'You can select multiple files · max 10MB each' : 'PNG, JPG, or WebP · max 10MB'}
+      </div>
+    </div>
+  );
+}
