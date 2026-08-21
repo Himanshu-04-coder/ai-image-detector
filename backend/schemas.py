@@ -107,19 +107,71 @@ class CNNResult(BaseModel):
 
 
 class EXIFResult(BaseModel):
-    """Output of exif_analysis.analyze_exif()."""
+    """
+    Output of exif_analysis.analyze_exif().
 
-    score: float = Field(..., ge=0.0, le=1.0)
-    signals: List[str]
-    raw_metadata: dict
+    NOTE: ``risk_score`` is a HEURISTIC supporting signal - it must
+    never be used as a standalone detector. See the long docstring
+    at the top of ``exif_analysis.py`` for the honest limitations.
+    """
+
+    has_exif: bool = Field(
+        ...,
+        description="True if the image contained an EXIF block at all.",
+    )
+    camera_make: Optional[str] = Field(
+        None,
+        description='Value of the "Make" EXIF tag (camera manufacturer), if present.',
+    )
+    camera_model: Optional[str] = Field(
+        None,
+        description='Value of the "Model" EXIF tag (camera model), if present.',
+    )
+    software: Optional[str] = Field(
+        None,
+        description='Value of the "Software" EXIF tag, if present.',
+    )
+    risk_score: str = Field(
+        ...,
+        description='Discrete AI-likelihood rating: "Low" | "Medium" | "High".',
+    )
+    risk_reasons: List[str] = Field(
+        ...,
+        description="Human-readable list of EXIF red flags (or a reassuring note "
+        "if none were found).",
+    )
 
 
 class FrequencyResult(BaseModel):
-    """Output of frequency_analysis.analyze_frequency()."""
+    """
+    Output of frequency_analysis.analyze_frequency().
 
-    score: float = Field(..., ge=0.0, le=1.0)
-    signals: List[str]
-    spectrum_path: Optional[str] = None
+    NOTE: the ``high_freq_energy_ratio`` is a single classical
+    signal-processing feature, NOT a learned AI-likelihood. It is
+    included as a supporting visual + statistical signal only.
+    See the long docstring at the top of ``frequency_analysis.py``
+    for the honest limitations and how to talk about them in viva.
+    """
+
+    spectrum_image_path: Optional[str] = Field(
+        None,
+        description="Filesystem path (or URL) of the saved FFT spectrum "
+        "visualization PNG.",
+    )
+    high_freq_energy_ratio: float = Field(
+        ...,
+        ge=0.0,
+        le=1.0,
+        description="Ratio of high-frequency energy to total energy in the "
+        "FFT magnitude spectrum. Higher values can correlate with "
+        "diffusion upsampling artefacts but are also elevated in "
+        "busy-textured real photos.",
+    )
+    note: str = Field(
+        ...,
+        description="Honest reminder that this is a heuristic supporting "
+        "signal, not a standalone classifier.",
+    )
 
 
 class CombinedVerdict(BaseModel):

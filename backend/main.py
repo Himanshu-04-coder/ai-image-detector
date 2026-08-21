@@ -28,8 +28,9 @@ from __future__ import annotations
 import json
 import logging
 import os
+import uuid
 from contextlib import asynccontextmanager
-from typing import List
+from typing import List, Optional
 
 from fastapi import (
     Depends,
@@ -406,32 +407,94 @@ async def stats():
 # ---------------------------------------------------------------
 # 5. POST /predict-detailed
 # ---------------------------------------------------------------
+def _exif_risk_to_score(risk_score: str) -> float:
+    """
+    Map the discrete EXIF ``risk_score`` ("Low" | "Medium" | "High")
+    to a numeric AI-likelihood in [0, 1] for the combined verdict.
+
+    These are intentionally *modest* values - EXIF is only a supporting
+    signal (see exif_analysis.py for the full discussion of why EXIF
+    is easily stripped or forged). Even "High" EXIF risk should not
+    on its own drive the verdict; it can only corroborate the CNN.
+
+    Mapping:
+        "Low"    -> 0.10  (no red flags, but absence of EXIF is not
+                           proof of anything either)
+        "Medium" -> 0.40  (missing EXIF, or inconsistent camera profile)
+        "High"   -> 0.80  (smoking-gun Software tag, etc.)
+        anything else -> 0.10 (default safe fallback)
+    """
+    mapping = {"Low": 0.10, "Medium": 0.40, "High": 0.80}
+    return mapping.get(risk_score, 0.10)
+
+
+def _freq_ratio_to_score(ratio: float) -> float:
+    """
+    Map the continuous ``high_freq_energy_ratio`` (typically 0..1,
+    often 0.05..0.6 for natural images) to a numeric AI-likelihood
+    in [0, 1] for the combined verdict.
+
+    IMPORTANT: this mapping is intentionally conservative. The FFT
+    ratio is a single classical feature that is sensitive to image
+    CONTENT (busy real photos can score high) as well as to image
+    ORIGIN. The thresholds below were chosen to err on the side of
+    "we don't know" - the frequency signal is given the lowest
+    weight in the combined verdict (0.15) precisely because we
+    don't trust it on its own.
+
+    Buckets (linear interpolation between them):
+        ratio <= 0.15 -> 0.10   (looks smooth / natural)
+        0.15 < ratio <= 0.30 -> linearly 0.10 -> 0.40
+        0.30 < ratio <= 0.45 -> linearly 0.40 -> 0.70
+        ratio > 0.45        -> 0.80 (looks anomalously periodic)
+    """
+    # Clamp input to the expected range just in case the analyzer
+    # ever returns something outside [0, 1].
+    r = max(0.0, min(1.0, float(ratio)))
+    if r <= 0.15:
+        return 0.10
+    if r <= 0.30:
+        # 0.15 -> 0.10, 0.30 -> 0.40
+        return 0.10 + (r - 0.15) * (0.40 - 0.10) / (0.30 - 0.15)
+    if r <= 0.45:
+        # 0.30 -> 0.40, 0.45 -> 0.70
+        return 0.40 + (r - 0.30) * (0.70 - 0.40) / (0.45 - 0.30)
+    return 0.80
+
+
 def _combine_verdict(
     cnn_label: str,
     cnn_confidence: float,
-    exif_score: float,
-    frequency_score: float,
+    exif_risk_score: str,
+    frequency_ratio: float,
 ) -> CombinedVerdict:
     """
     Aggregate the three signals into one final verdict.
 
     Scoring rule (deliberately simple and explainable for viva):
-        - cnn_score        = P(AI-GENERATED) from the CNN. If the CNN says
-                             REAL we use (1 - confidence); if it says
-                             AI-GENERATED we use confidence directly.
-        - exif_score       = 0..1, AI-likelihood from metadata.
-        - frequency_score  = 0..1, AI-likelihood from FFT.
+        - cnn_score         = P(AI-GENERATED) from the CNN. If the CNN says
+                              REAL we use (1 - confidence); if it says
+                              AI-GENERATED we use confidence directly.
+        - exif_score        = 0..1, AI-likelihood from metadata (mapped
+                              from the discrete Low/Medium/High risk).
+        - frequency_score   = 0..1, AI-likelihood from the FFT high-freq
+                              energy ratio (mapped via _freq_ratio_to_score).
 
         Combined AI-likelihood =
             0.6 * cnn_score  +  0.25 * exif_score  +  0.15 * frequency_score
 
         (CNN gets the highest weight because it's the only signal that
-         actually learned from labelled data. The other two are forensic
-         hints that the user said will be implemented later.)
+         actually learned from labelled data. EXIF and frequency are
+         heuristic supporting signals - EXIF especially so, because
+         metadata is trivially stripped or forged; frequency is also
+         classical-heuristic, not learned - see frequency_analysis.py
+         for the honest limitations.)
 
     Threshold: >= 0.5 -> "AI-GENERATED", else "REAL".
     """
     cnn_ai_prob = cnn_confidence if cnn_label == "AI-GENERATED" else (1.0 - cnn_confidence)
+    exif_score = _exif_risk_to_score(exif_risk_score)
+    frequency_score = _freq_ratio_to_score(frequency_ratio)
     combined_ai_prob = (
         0.6 * cnn_ai_prob + 0.25 * exif_score + 0.15 * frequency_score
     )
@@ -445,8 +508,9 @@ def _combine_verdict(
 
     rationale = (
         f"CNN P(AI)={cnn_ai_prob:.2f} (weight 0.60), "
-        f"EXIF score={exif_score:.2f} (weight 0.25), "
-        f"frequency score={frequency_score:.2f} (weight 0.15). "
+        f"EXIF risk={exif_risk_score} -> score={exif_score:.2f} (weight 0.25), "
+        f"frequency ratio={frequency_ratio:.3f} -> score={frequency_score:.2f} "
+        f"(weight 0.15). "
         f"Combined P(AI)={combined_ai_prob:.2f}."
     )
     return CombinedVerdict(
@@ -467,9 +531,13 @@ async def predict_detailed(file: UploadFile = File(...)):
     Like /predict, but also runs EXIF and frequency forensic modules
     and combines all three signals into a final verdict.
 
-    The forensic modules are currently placeholders that return 0.0 -
-    see exif_analysis.py and frequency_analysis.py. Once you implement
-    them, this endpoint automatically picks up the real scores.
+    Both forensic modules are classical signal-processing / metadata
+    heuristics - they are useful as supporting signals and as
+    explainability artifacts (the saved EXIF and FFT-spectrum outputs
+    can be shown in the UI and discussed in the viva), but their
+    standalone reliability is limited. The CNN carries the actual
+    classification decision; EXIF + frequency only corroborate it.
+    See the module docstrings for the honest limitations.
     """
     contents = await _read_and_validate_upload(file)
 
@@ -505,24 +573,70 @@ async def predict_detailed(file: UploadFile = File(...)):
         )
 
     exif_dict = exif_analysis.analyze_exif(image_path)
-    freq_dict = frequency_analysis.analyze_frequency(image_path)
 
+    # ---- Frequency branch (heuristic - must NEVER break the endpoint) ----
+    # analyze_frequency is already designed to return a neutral fallback
+    # dict on any internal failure (see frequency_analysis.py). The
+    # try/except here is a belt-and-braces safety net for truly
+    # unexpected exceptions (e.g. a numpy bug on a weird image).
+    spectrum_filename = f"{uuid.uuid4().hex}_spectrum.png"
+    spectrum_output_path = os.path.join(STATIC_DIR, "heatmaps", spectrum_filename)
+    try:
+        freq_dict = frequency_analysis.analyze_frequency(
+            image_path, spectrum_output_path
+        )
+    except Exception as exc:
+        logger.exception("Frequency analysis raised unexpectedly: %s", exc)
+        freq_dict = {
+            "spectrum_image_path": None,
+            "high_freq_energy_ratio": 0.20,  # neutral fallback
+            "note": (
+                "Frequency analysis failed unexpectedly. This is a "
+                "heuristic supporting signal only, not a standalone "
+                "classifier, and the rest of the response (CNN + EXIF) "
+                "is unaffected."
+            ),
+        }
+
+    # New EXIF contract returns the discrete risk_score + reasons
+    # directly. See exif_analysis.py for the full discussion of why
+    # this is a HEURISTIC supporting signal only.
     exif_result = EXIFResult(
-        score=float(exif_dict.get("score", 0.0)),
-        signals=list(exif_dict.get("signals", [])),
-        raw_metadata=dict(exif_dict.get("raw_metadata", {})),
+        has_exif=bool(exif_dict.get("has_exif", False)),
+        camera_make=exif_dict.get("camera_make"),
+        camera_model=exif_dict.get("camera_model"),
+        software=exif_dict.get("software"),
+        risk_score=exif_dict.get("risk_score", "Low"),
+        risk_reasons=list(exif_dict.get("risk_reasons", [])),
     )
+
+    # Convert the saved absolute filesystem path into the URL the
+    # frontend can drop into <img src=...> - same pattern as the
+    # Grad-CAM heatmap_url produced by model_utils.process_image.
+    # If the analyzer couldn't save the PNG (matplotlib missing,
+    # write failure, etc.) the URL is null and the frontend should
+    # render the note text instead.
+    spectrum_url: Optional[str] = None
+    saved_spectrum_path = freq_dict.get("spectrum_image_path")
+    if saved_spectrum_path and os.path.isfile(saved_spectrum_path):
+        spectrum_url = f"/static/heatmaps/{os.path.basename(saved_spectrum_path)}"
+
     frequency_result = FrequencyResult(
-        score=float(freq_dict.get("score", 0.0)),
-        signals=list(freq_dict.get("signals", [])),
-        spectrum_path=freq_dict.get("spectrum_path"),
+        spectrum_image_path=spectrum_url,
+        high_freq_energy_ratio=float(
+            freq_dict.get("high_freq_energy_ratio", 0.20)
+        ),
+        note=freq_dict.get(
+            "note",
+            "Heuristic supporting signal, not a standalone classifier.",
+        ),
     )
 
     combined_verdict = _combine_verdict(
         cnn_label=cnn_result.label,
         cnn_confidence=cnn_result.confidence,
-        exif_score=exif_result.score,
-        frequency_score=frequency_result.score,
+        exif_risk_score=exif_result.risk_score,
+        frequency_ratio=frequency_result.high_freq_energy_ratio,
     )
 
     return DetailedPredictResponse(

@@ -29,5 +29,10 @@ Pillow==10.4.0
 opencv-python-headless==4.10.0.84
 numpy>=2.0,<3.0
 
+# Visualisation for the FFT magnitude spectrum shown in /predict-detailed.
+# Agg backend is forced inside frequency_analysis.py so this works on
+# headless servers (no display required).
+matplotlib==3.9.2
+
 # (Optional) for serving large uploads faster in production
 # python-multipart==0.0.12
