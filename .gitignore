@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+.venv/
+env/
+.env
+
+# Node.js / React
+node_modules/
+dist/
+build/
+.next/
+.vite/
+
+# ML / Model artifacts
+*.pth
+*.h5
+*.hdf5
+*.onnx
+*.pt
+*.pkl
+*.joblib
+*.ckpt
+checkpoints/
+models/
+
+# Data (large dataset, kept out of GitHub)
+data/
+
+# Jupyter / Colab
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
