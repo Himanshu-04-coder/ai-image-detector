@@ -8,8 +8,8 @@ export function Skeleton({ className, ...rest }) {
     <div
       aria-hidden="true"
       className={cn(
-        'animate-pulse bg-surface-200 dark:bg-surface-700',
-        'rounded-md',
+        'animate-pulse bg-pencil/10',
+        'wobbly-4',
         className
       )}
       {...rest}

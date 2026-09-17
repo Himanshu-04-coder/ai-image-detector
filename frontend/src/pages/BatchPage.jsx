@@ -85,7 +85,7 @@ export default function BatchPage() {
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Batch analysis"
         subtitle="Upload multiple images and get verdicts in a single request."
@@ -103,45 +103,48 @@ export default function BatchPage() {
           <DropZone multiple onFiles={handleFiles} />
 
           {files.length > 0 && (
-            <div className="card p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-sm font-semibold">
-                  Queued ({files.length})
+            <div className="rotate-1">
+              <div className="card p-4 relative">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-20 h-6 bg-white/40 backdrop-blur-sm border border-pencil/20 rotate-[-2deg] z-10" />
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-sm font-semibold font-heading text-lg">
+                    Queued ({files.length})
+                  </div>
+                  <button
+                    onClick={runBatch}
+                    disabled={loading}
+                    className="btn-primary text-xs px-3 py-1.5"
+                  >
+                    {loading ? 'Analyzing…' : 'Analyze all'}
+                  </button>
                 </div>
-                <button
-                  onClick={runBatch}
-                  disabled={loading}
-                  className="btn-primary text-xs px-3 py-1.5"
-                >
-                  {loading ? 'Analyzing…' : 'Analyze all'}
-                </button>
+                <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                  {files.map((f) => (
+                    <li key={`${f.name}-${f.lastModified}`}
+                        className="relative group wobbly-3 overflow-hidden
+                                   border-2 border-pencil
+                                   bg-paper">
+                      <div className="aspect-square">
+                        <img src={previews[f.name]} alt=""
+                             className="w-full h-full object-cover" />
+                      </div>
+                      <div className="px-2 py-1.5 text-xs truncate text-pencil">
+                        {f.name}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeFile(f.name)}
+                        className="absolute top-1.5 right-1.5 p-1 rounded-md
+                                  bg-pencil text-white opacity-0
+                                  group-hover:opacity-100 transition"
+                        aria-label={`Remove ${f.name}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {files.map((f) => (
-                  <li key={`${f.name}-${f.lastModified}`}
-                      className="relative group rounded-lg overflow-hidden
-                                 border border-surface-200 dark:border-surface-700
-                                 bg-surface-50 dark:bg-surface-800">
-                    <div className="aspect-square">
-                      <img src={previews[f.name]} alt=""
-                           className="w-full h-full object-cover" />
-                    </div>
-                    <div className="px-2 py-1.5 text-xs truncate">
-                      {f.name}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(f.name)}
-                      className="absolute top-1.5 right-1.5 p-1 rounded-md
-                                 bg-black/60 text-white opacity-0
-                                 group-hover:opacity-100 transition"
-                      aria-label={`Remove ${f.name}`}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
             </div>
           )}
 
@@ -152,21 +155,19 @@ export default function BatchPage() {
           )}
 
           {error && !loading && (
-            <div className="card-padded border-red-200 dark:border-red-800
-                            bg-red-50 dark:bg-red-900/20 text-red-700
-                            dark:text-red-300 text-sm">
+            <div className="card-padded border-marker bg-marker/10 text-marker text-sm wobbly-3">
               {error}
             </div>
           )}
         </div>
 
         {/* Right: results table */}
-        <div className="lg:col-span-1">
-          <div className="card overflow-hidden">
-            <div className="px-4 py-3 border-b border-surface-200
-                            dark:border-surface-700">
-              <div className="text-sm font-semibold">Results</div>
-              <div className="text-xs text-surface-500 dark:text-surface-400">
+        <div className="lg:col-span-1 rotate-[-1]">
+          <div className="card overflow-hidden relative">
+            <div className="absolute -top-2 -right-2 w-4 h-4 bg-marker rounded-full shadow-hard z-10" />
+            <div className="px-4 py-3 border-b-2 border-pencil">
+              <div className="text-sm font-semibold font-heading text-lg">Results</div>
+              <div className="text-xs text-pencil/60">
                 {results
                   ? `${results.length} analysed`
                   : files.length > 0
@@ -215,7 +216,7 @@ export default function BatchPage() {
                                                 bg-red-50 dark:bg-red-900/20 shrink-0">
                                   {thumb ? (
                                     <img src={thumb} alt=""
-                                         className="w-full h-full object-cover opacity-50" />
+                                        className="w-full h-full object-cover opacity-50" />
                                   ) : (
                                     <AlertTriangle className="w-5 h-5 m-auto mt-2 text-red-500" />
                                   )}
@@ -232,9 +233,9 @@ export default function BatchPage() {
                             </td>
                             <td>
                               <span className="text-xs px-2 py-1 rounded-full
-                                               bg-red-50 text-red-700 ring-1 ring-red-200
-                                               dark:bg-red-900/30 dark:text-red-300
-                                               dark:ring-red-800">
+                                              bg-red-50 text-red-700 ring-1 ring-red-200
+                                              dark:bg-red-900/30 dark:text-red-300
+                                              dark:ring-red-800">
                                 Failed
                               </span>
                             </td>
@@ -252,7 +253,7 @@ export default function BatchPage() {
                                               bg-surface-100 dark:bg-surface-800 shrink-0">
                                 {thumb && (
                                   <img src={thumb} alt=""
-                                       className="w-full h-full object-cover" />
+                                      className="w-full h-full object-cover" />
                                 )}
                               </div>
                               <div className="min-w-0">

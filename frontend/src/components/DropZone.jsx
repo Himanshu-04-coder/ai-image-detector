@@ -65,15 +65,12 @@ export default function DropZone({
       onDragLeave={() => setOver(false)}
       onDrop={onDrop}
       className={cn(
-        'group cursor-pointer rounded-2xl border-2 border-dashed p-10',
+        'group cursor-pointer wobbly-1 border-4 border-pencil p-10',
         'flex flex-col items-center justify-center text-center',
-        'transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500',
+        'transition-colors focus:outline-none focus:ring-2 focus:ring-ink/20',
         over
-          ? 'border-brand-500 bg-brand-50/60 dark:bg-brand-900/20'
-          : 'border-surface-300 dark:border-surface-600 '
-          + 'bg-surface-50 dark:bg-surface-800/40 '
-          + 'hover:border-brand-400 hover:bg-brand-50/40 '
-          + 'dark:hover:bg-brand-900/10'
+          ? 'border-ink bg-paper'
+          : 'border-pencil bg-paper hover:border-marker'
       )}
     >
       <input
@@ -84,15 +81,14 @@ export default function DropZone({
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
       />
-      <div className="w-14 h-14 rounded-2xl grid place-items-center mb-4
-                      bg-white dark:bg-surface-800
-                      border border-surface-200 dark:border-surface-700
-                      text-brand-600 dark:text-brand-300
+      <div className="w-14 h-14 wobbly-4 grid place-items-center mb-4
+                      bg-white border-2 border-pencil
+                      text-ink
                       group-hover:scale-105 transition-transform">
         {multiple ? <ImagePlus className="w-7 h-7" /> : <Upload className="w-7 h-7" />}
       </div>
       <div className="text-sm font-medium">{label}</div>
-      <div className="mt-1 text-xs text-surface-500 dark:text-surface-400">
+      <div className="mt-1 text-xs text-pencil/60">
         {multiple ? 'You can select multiple files · max 10MB each' : 'PNG, JPG, or WebP · max 10MB'}
       </div>
     </div>

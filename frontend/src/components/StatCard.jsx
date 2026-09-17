@@ -16,38 +16,35 @@ export default function StatCard({
   hint,
 }) {
   const accents = {
-    brand:   'bg-brand-50 text-brand-700 '
-           + 'dark:bg-brand-900/30 dark:text-brand-300',
-    real:    'bg-emerald-50 text-emerald-700 '
-           + 'dark:bg-emerald-900/30 dark:text-emerald-300',
-    fake:    'bg-red-50 text-red-700 '
-           + 'dark:bg-red-900/30 dark:text-red-300',
-    pending: 'bg-amber-50 text-amber-700 '
-           + 'dark:bg-amber-900/30 dark:text-amber-300',
+    brand:   'bg-paper text-ink',
+    real:    'bg-paper text-ink',
+    fake:    'bg-paper text-marker',
+    pending: 'bg-paper text-pencil',
   };
 
   return (
     <div className="card-padded flex items-start justify-between gap-4">
       <div className="min-w-0">
         <div className="text-xs font-medium uppercase tracking-wider
-                        text-surface-500 dark:text-surface-400">
+                        text-pencil/60">
           {label}
         </div>
         <div className="mt-1 text-3xl font-semibold tracking-tight">
           {formatPct(value)}
         </div>
         {hint && (
-          <div className="mt-1 text-xs text-surface-500 dark:text-surface-400">
+          <div className="mt-1 text-xs text-pencil/60">
             {hint}
           </div>
         )}
       </div>
       {Icon && (
-        <div className={cn('w-10 h-10 rounded-lg grid place-items-center shrink-0',
+        <div className={cn('w-10 h-10 wobbly-4 grid place-items-center shrink-0 border-2 border-pencil',
                            accents[accent])}>
           <Icon className="w-5 h-5" />
         </div>
       )}
     </div>
   );
+
 }

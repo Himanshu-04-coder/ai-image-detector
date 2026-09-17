@@ -16,7 +16,7 @@ import EmptyState from '../components/EmptyState';
 import StatsSkeleton from '../components/Skeleton';
 import { getStats, normalizeError } from '../api/client';
 import notify from '../lib/toast';
-import { cn, formatPct } from '../lib/utils';
+import { cn } from '../lib/utils';
 
 /**
  * Render the confusion matrix as a 2x2 "heatmap" using Recharts.
@@ -46,7 +46,7 @@ function ConfusionHeatmap({ matrix }) {
 
   if (!grid) {
     return (
-      <div className="text-sm text-surface-500 dark:text-surface-400">
+      <div className="text-sm text-pencil/60">
         Confusion matrix unavailable.
       </div>
     );
@@ -79,7 +79,7 @@ function ConfusionHeatmap({ matrix }) {
         <div />
         {colLabels.map((c) => (
           <div key={c} className="text-center text-xs font-medium
-                                  text-surface-500 dark:text-surface-400">
+                                  text-pencil/60">
             {c}
           </div>
         ))}
@@ -87,7 +87,7 @@ function ConfusionHeatmap({ matrix }) {
         {rowLabels.map((rowLabel, yi) => (
           <div key={rowLabel} className="contents">
             <div className="text-xs font-medium pr-2 text-right
-                            text-surface-500 dark:text-surface-400">
+                            text-pencil/60">
               {rowLabel}
             </div>
             {[0, 1].map((xi) => {
@@ -100,9 +100,9 @@ function ConfusionHeatmap({ matrix }) {
                 : 'text-white';
               return (
                 <div key={xi}
-                     className="aspect-[2/1] rounded-md flex flex-col
+                     className="aspect-[2/1] wobbly-2 flex flex-col
                                 items-center justify-center m-1
-                                border border-surface-200 dark:border-surface-700
+                                border-2 border-pencil
                                 transition-transform hover:scale-[1.02]"
                      style={{
                        backgroundColor: `hsl(217, 91%, ${lightness}%)`,
@@ -131,13 +131,13 @@ function ConfusionHeatmap({ matrix }) {
                    tickFormatter={(v) => (v === 0 ? 'Real' : 'AI')}
                    tick={{ fontSize: 11 }}
                    stroke="currentColor"
-                   className="text-surface-500" />
+                   className="text-pencil/60" />
             <YAxis type="number" dataKey="y" name="actual"
                    domain={[-0.5, 1.5]} ticks={[0, 1]}
                    tickFormatter={(v) => (v === 0 ? 'Real' : 'AI')}
                    tick={{ fontSize: 11 }}
                    stroke="currentColor"
-                   className="text-surface-500" />
+                   className="text-pencil/60" />
             <ZAxis type="number" dataKey="value" range={[200, 1200]} />
             <Tooltip
               cursor={{ strokeDasharray: '3 3' }}
@@ -207,8 +207,6 @@ export default function StatsPage() {
   const totals    = pickNumber(stats, ['total', 'samples'], null);
   const updatedAt = stats?.updated_at ?? stats?.timestamp;
 
-  // "Empty stats" = the metrics file exists but every meaningful field is 0
-  // (or missing). We still show a friendly card rather than a wall of zeros.
   const metricsAreEmpty =
     !!stats &&
     (accuracy === null || accuracy === 0) &&
@@ -235,8 +233,7 @@ export default function StatsPage() {
       {loading && !stats ? (
         <StatsSkeleton />
       ) : error ? (
-        <div className="card-padded border-l-4 border-red-400 bg-red-50
-                        dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm">
+        <div className="card-padded border-marker bg-marker/10 text-marker text-sm wobbly-3">
           {error}
         </div>
       ) : metricsAreEmpty ? (
@@ -259,38 +256,46 @@ export default function StatsPage() {
         <div className="space-y-6 animate-fade-in">
           {/* KPI cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard label="Accuracy"  value={accuracy}
-                      icon={CheckCircle2} accent="brand"
-                      hint={totals !== null ? `Over ${totals} samples` : undefined} />
-            <StatCard label="Precision" value={precision}
-                      icon={Target} accent="real" />
-            <StatCard label="Recall"    value={recall}
-                      icon={Gauge} accent="pending" />
-            <StatCard label="F1 Score"  value={f1}
-                      icon={Sigma} accent="fake" />
+            <div className="rotate-1">
+              <StatCard label="Accuracy"  value={accuracy}
+                        icon={CheckCircle2} accent="brand"
+                        hint={totals !== null ? `Over ${totals} samples` : undefined} />
+            </div>
+            <div className="rotate-[-1]">
+              <StatCard label="Precision" value={precision}
+                        icon={Target} accent="real" />
+            </div>
+            <div className="rotate-1">
+              <StatCard label="Recall"    value={recall}
+                        icon={Gauge} accent="pending" />
+            </div>
+            <div className="rotate-[-1]">
+              <StatCard label="F1 Score"  value={f1}
+                        icon={Sigma} accent="fake" />
+            </div>
           </div>
 
           {/* Confusion matrix */}
-          <div className="card-padded">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <div className="text-sm font-semibold">Confusion matrix</div>
-                <div className="text-xs text-surface-500 dark:text-surface-400">
+          <div className="rotate-1">
+            <div className="card-padded relative">
+              <div className="absolute -top-2 -right-2 w-4 h-4 bg-marker rounded-full shadow-hard z-10" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-lg font-semibold font-heading">Confusion matrix</div>
+                <div className="text-xs text-pencil/60">
                   Cell counts · darker = higher
                 </div>
+                {updatedAt && (
+                  <div className="text-xs text-pencil/60">
+                    Updated {new Date(updatedAt).toLocaleString()}
+                  </div>
+                )}
               </div>
-              {updatedAt && (
-                <div className="text-xs text-surface-500 dark:text-surface-400">
-                  Updated {new Date(updatedAt).toLocaleString()}
-                </div>
-              )}
+              <ConfusionHeatmap matrix={matrix} />
             </div>
-            <ConfusionHeatmap matrix={matrix} />
           </div>
         </div>
       )}
 
-      {/* Subtle inline spinner on re-fetches after the first load. */}
       {loading && stats && (
         <div className="mt-4 flex justify-center">
           <Spinner label="Refreshing…" />

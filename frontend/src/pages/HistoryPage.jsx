@@ -18,8 +18,6 @@ const COLUMNS = [
 ];
 
 function getSortValue(row, key) {
-  // The backend /history returns {id, filename, label, confidence,
-  // timestamp, thumbnail_path}. The columns "verdict" maps to label.
   switch (key) {
     case 'verdict':
       return normalizeVerdict(row.verdict ?? row.label);
@@ -60,7 +58,6 @@ export default function HistoryPage() {
     setError(null);
     try {
       const data = await getHistory();
-      // /history returns a bare JSON array of HistoryItem objects.
       const arr = Array.isArray(data) ? data : data.history ?? data.items ?? [];
       setRows(arr);
     } catch (e) {
@@ -96,7 +93,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       <PageHeader
         title="Prediction history"
         subtitle="Every image you've analyzed through the backend."
@@ -109,46 +106,46 @@ export default function HistoryPage() {
         }
       />
 
-      <div className="card overflow-hidden">
-        {loading ? (
-          <div className="p-6"><Spinner label="Loading history…" /></div>
-        ) : error ? (
-          <div className="p-6 text-sm border-l-4 border-red-400 bg-red-50
-                          dark:bg-red-900/20 text-red-700 dark:text-red-300">
-            {error}
-          </div>
-        ) : sorted.length === 0 ? (
-          <EmptyState
-            className="py-12"
-            icon={ImageOff}
-            title="No predictions yet"
-            description={"Once you analyse an image it will show up here. " +
-                         "Head to the Analyze page to run your first scan."}
-          />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="table-base">
-              <thead>
-                <tr>
-                  {COLUMNS.map((col) => {
-                    const active = sortKey === col.key;
-                    return (
-                      <th
-                        key={col.key}
-                        className={cn(
-                          col.sortable && 'cursor-pointer select-none hover:text-surface-700 '
-                          + 'dark:hover:text-white'
-                        )}
-                        onClick={() => col.sortable && toggleSort(col.key)}
-                      >
-                        <span className="inline-flex items-center gap-1.5">
-                          {col.label}
-                          {col.sortable && (
-                            active
-                              ? (sortDir === 'asc'
-                                  ? <ArrowUp className="w-3 h-3" />
-                                  : <ArrowDown className="w-3 h-3" />)
-                              : <ArrowUpDown className="w-3 h-3 opacity-40" />
+      <div className="rotate-[-1]">
+        <div className="card overflow-hidden relative">
+          <div className="absolute -top-2 -right-2 w-4 h-4 bg-marker rounded-full shadow-hard z-10" />
+          {loading ? (
+            <div className="p-6"><Spinner label="Loading history…" /></div>
+          ) : error ? (
+            <div className="p-6 text-sm border-marker bg-marker/10 text-marker wobbly-3">
+              {error}
+            </div>
+          ) : sorted.length === 0 ? (
+            <EmptyState
+              className="py-12"
+              icon={ImageOff}
+              title="No predictions yet"
+              description={"Once you analyse an image it will show up here. " +
+                           "Head to the Analyze page to run your first scan."}
+            />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="table-base">
+                <thead>
+                  <tr>
+                    {COLUMNS.map((col) => {
+                      const active = sortKey === col.key;
+                      return (
+                        <th
+                          key={col.key}
+                          className={cn(
+                            col.sortable && 'cursor-pointer select-none hover:text-pencil'
+                          )}
+                          onClick={() => col.sortable && toggleSort(col.key)}
+                        >
+                          <span className="inline-flex items-center gap-1.5">
+                            {col.label}
+                            {col.sortable && (
+                              active
+                                ? (sortDir === 'asc'
+                                    ? <ArrowUp className="w-3 h-3" />
+                                    : <ArrowDown className="w-3 h-3" />)
+                                : <ArrowUpDown className="w-3 h-3 opacity-40" />
                           )}
                         </span>
                       </th>
@@ -164,16 +161,15 @@ export default function HistoryPage() {
                   return (
                     <tr key={row.id ?? i}>
                       <td>
-                        <div className="w-10 h-10 rounded-md overflow-hidden
-                                        border border-surface-200
-                                        dark:border-surface-700
-                                        bg-surface-100 dark:bg-surface-800">
+                        <div className="w-10 h-10 wobbly-2 overflow-hidden
+                                        border-2 border-pencil
+                                        bg-paper">
                           {thumb ? (
                             <img src={thumb} alt=""
                                  className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full grid place-items-center
-                                            text-surface-400">
+                                            text-pencil/40">
                               <ImageOff className="w-4 h-4" />
                             </div>
                           )}
@@ -193,20 +189,21 @@ export default function HistoryPage() {
                                 : Number(confidence)).toFixed(1)}%`
                           : '—'}
                       </td>
-                      <td className="text-surface-600 dark:text-surface-300
+                      <td className="text-pencil/60
                                      max-w-[16rem] truncate">
                         {row.filename ?? row.name ?? '—'}
                       </td>
-                      <td className="text-surface-600 dark:text-surface-300">
+                      <td className="text-pencil/60">
                         {formatDate(row.timestamp ?? row.created_at ?? row.time)}
                       </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

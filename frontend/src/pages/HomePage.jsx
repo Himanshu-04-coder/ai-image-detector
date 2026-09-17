@@ -44,7 +44,7 @@ function exifRiskToNumber(risk) {
 function ExifPanel({ exif }) {
   if (!exif) {
     return (
-      <div className="text-sm text-surface-500 dark:text-surface-400">
+      <div className="text-sm text-pencil/60">
         No EXIF data returned by the backend.
       </div>
     );
@@ -59,30 +59,27 @@ function ExifPanel({ exif }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <div className="text-xs uppercase tracking-wider text-surface-500
-                          dark:text-surface-400">
+          <div className="text-xs uppercase tracking-wider text-pencil/60">
             EXIF risk score
           </div>
-          <div className="mt-1 text-2xl font-semibold">{risk}</div>
+          <div className="mt-1 text-2xl font-semibold font-heading">{risk}</div>
           {exif.camera_make || exif.camera_model ? (
-            <div className="text-xs text-surface-500 dark:text-surface-400 mt-1">
+            <div className="text-xs text-pencil/60 mt-1">
               {[exif.camera_make, exif.camera_model].filter(Boolean).join(' ')}
             </div>
           ) : null}
           {exif.software ? (
-            <div className="text-xs text-surface-500 dark:text-surface-400">
+            <div className="text-xs text-pencil/60">
               Software: {exif.software}
             </div>
           ) : null}
         </div>
         <span
           className={cn(
-            'text-xs px-2 py-1 rounded-full ring-1',
+            'text-xs px-2 py-1 wobbly-2 ring-1',
             isHigh
-              ? 'bg-red-50 text-red-700 ring-red-200 '
-              + 'dark:bg-red-900/30 dark:text-red-300 dark:ring-red-800'
-              : 'bg-emerald-50 text-emerald-700 ring-emerald-200 '
-              + 'dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-800'
+              ? 'bg-marker/10 text-marker ring-marker/30 '
+              : 'bg-ink/10 text-ink ring-ink/30 '
           )}
         >
           {isHigh ? 'Suspicious metadata' : 'Looks consistent'}
@@ -92,24 +89,22 @@ function ExifPanel({ exif }) {
       {/* Visual bar - keeps the original "score" presentation but driven by the
           discrete risk string. */}
       <div>
-        <div className="h-2 w-full rounded-full overflow-hidden bg-surface-100
-                        dark:bg-surface-800">
+        <div className="h-2 w-full rounded-full overflow-hidden bg-pencil/10">
           <div className={cn('h-full transition-all',
-                             isHigh ? 'bg-red-500' : 'bg-emerald-500')}
+                             isHigh ? 'bg-marker' : 'bg-ink')}
                style={{ width: `${score * 100}%` }} />
         </div>
-        <div className="mt-1 text-xs text-surface-500 dark:text-surface-400">
+        <div className="mt-1 text-xs text-pencil/60">
           Heuristic score: {formatPct(score)}
         </div>
       </div>
 
       <div>
-        <div className="text-xs uppercase tracking-wider text-surface-500
-                        dark:text-surface-400 mb-2">
+        <div className="text-xs uppercase tracking-wider text-pencil/60 mb-2">
           Reasons
         </div>
         {reasons.length === 0 ? (
-          <div className="text-sm text-surface-500 dark:text-surface-400">
+          <div className="text-sm text-pencil/60">
             No specific concerns raised by the EXIF analysis.
           </div>
         ) : (
@@ -117,8 +112,8 @@ function ExifPanel({ exif }) {
             {reasons.map((r, i) => (
               <li key={i}
                   className="text-sm flex items-start gap-2
-                             text-surface-700 dark:text-surface-200">
-                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0" />
+                             text-pencil">
+                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-ink shrink-0" />
                 <span>{typeof r === 'string' ? r : r.message ?? JSON.stringify(r)}</span>
               </li>
             ))}
@@ -132,7 +127,7 @@ function ExifPanel({ exif }) {
 function FrequencyPanel({ frequency }) {
   if (!frequency) {
     return (
-      <div className="text-sm text-surface-500 dark:text-surface-400">
+      <div className="text-sm text-pencil/60">
         No frequency analysis returned by the backend.
       </div>
     );
@@ -143,27 +138,26 @@ function FrequencyPanel({ frequency }) {
   return (
     <div className="space-y-4">
       {imgUrl ? (
-        <div className="rounded-lg overflow-hidden border border-surface-200
-                        dark:border-surface-700 bg-surface-50 dark:bg-surface-900">
+        <div className="wobbly-2 overflow-hidden border-2 border-pencil
+                        bg-paper">
           <img src={imgUrl} alt="Frequency spectrum"
                className="w-full h-auto block" />
         </div>
       ) : (
-        <div className="text-sm text-surface-500 dark:text-surface-400
-                        rounded-lg border border-dashed
-                        border-surface-300 dark:border-surface-700 p-8 text-center">
+        <div className="text-sm text-pencil/60
+                        wobbly-2 border-2 border-dashed
+                        border-pencil p-8 text-center">
           No spectrum image returned by the backend.
         </div>
       )}
       <div>
-        <div className="text-xs uppercase tracking-wider text-surface-500
-                        dark:text-surface-400">
+        <div className="text-xs uppercase tracking-wider text-pencil/60">
           High-frequency energy ratio
         </div>
-        <div className="mt-1 text-2xl font-semibold">
+        <div className="mt-1 text-2xl font-semibold font-heading">
           {ratio === null ? '—' : formatPct(ratio)}
         </div>
-        <p className="mt-1 text-xs text-surface-500 dark:text-surface-400">
+        <p className="mt-1 text-xs text-pencil/60">
           {frequency.note ||
            'Higher values can indicate synthetic high-frequency artifacts.'}
         </p>
@@ -263,30 +257,33 @@ export default function HomePage() {
       {file && (
         <div className="space-y-6">
           {/* Selected image + action bar */}
-          <div className="card-padded">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="w-20 h-20 rounded-lg overflow-hidden
-                              border border-surface-200 dark:border-surface-700
-                              bg-surface-100 dark:bg-surface-800 shrink-0">
-                {previewUrl && (
-                  <img src={previewUrl} alt=""
-                       className="w-full h-full object-cover" />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium truncate">{file.name}</div>
-                <div className="text-xs text-surface-500 dark:text-surface-400">
-                  {(file.size / 1024).toFixed(1)} KB · {file.type || 'image'}
+          <div className="rotate-1">
+            <div className="card-padded relative">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-20 h-6 bg-white/40 backdrop-blur-sm border border-pencil/20 rotate-[-2deg] z-10" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="w-20 h-20 wobbly-2 overflow-hidden
+                                border-2 border-pencil
+                                bg-paper shrink-0">
+                  {previewUrl && (
+                    <img src={previewUrl} alt=""
+                         className="w-full h-full object-cover" />
+                  )}
                 </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium truncate font-heading text-lg"> {file.name}</div>
+                  <div className="text-xs text-pencil/60">
+                    {(file.size / 1024).toFixed(1)} KB · {file.type || 'image'}
+                  </div>
+                </div>
+                <button
+                  onClick={runAnalysis}
+                  disabled={loading}
+                  className="btn-primary"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {loading ? 'Analyzing…' : 'Analyze'}
+                </button>
               </div>
-              <button
-                onClick={runAnalysis}
-                disabled={loading}
-                className="btn-primary"
-              >
-                <Sparkles className="w-4 h-4" />
-                {loading ? 'Analyzing…' : 'Analyze'}
-              </button>
             </div>
           </div>
 
@@ -299,9 +296,7 @@ export default function HomePage() {
 
           {/* Error state */}
           {error && !loading && (
-            <div className="card-padded border-red-200 dark:border-red-800
-                            bg-red-50 dark:bg-red-900/20 text-red-700
-                            dark:text-red-300 text-sm">
+            <div className="card-padded border-marker bg-marker/10 text-marker text-sm wobbly-3">
               {error}
             </div>
           )}
@@ -310,88 +305,94 @@ export default function HomePage() {
           {result && !loading && verdict && (
             <div className="space-y-6 animate-fade-in">
               {/* Verdict hero */}
-              <div className="card-padded flex flex-col sm:flex-row sm:items-center
-                              gap-4 justify-between">
-                <div className="flex items-center gap-4">
-                  <VerdictBadge
-                    verdict={verdict}
-                    confidence={confidence}
-                    size="lg"
-                  />
-                  <div className="text-sm text-surface-500 dark:text-surface-400">
-                    Based on a multi-signal CNN + EXIF + FFT analysis.
+              <div className="rotate-[-1]">
+                <div className="card-padded flex flex-col sm:flex-row sm:items-center
+                                gap-4 justify-between relative">
+                  <div className="absolute -top-2 -right-2 w-4 h-4 bg-marker rounded-full shadow-hard z-10" />
+                  <div className="flex items-center gap-4">
+                    <VerdictBadge
+                      verdict={verdict}
+                      confidence={confidence}
+                      size="lg"
+                    />
+                    <div className="text-sm text-pencil/60">
+                      Based on a multi-signal CNN + EXIF + FFT analysis.
+                    </div>
                   </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs uppercase tracking-wider
-                                  text-surface-500 dark:text-surface-400">
-                    Confidence
-                  </div>
-                  <div className="text-2xl font-semibold">
-                    {formatPct(confidence)}
+                  <div className="text-right">
+                    <div className="text-xs uppercase tracking-wider
+                                    text-pencil/60 font-semibold">
+                      Confidence
+                    </div>
+                    <div className="text-2xl font-semibold font-heading">
+                      {formatPct(confidence)}
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Rationale (only if available) */}
               {combined?.rationale && (
-                <div className="card-padded">
-                  <div className="text-sm font-semibold mb-2">Why this verdict?</div>
-                  <p className="text-sm text-surface-700 dark:text-surface-200">
-                    {combined.rationale}
-                  </p>
+                <div className="rotate-1">
+                  <div className="card-padded">
+                    <div className="text-sm font-semibold mb-2 font-heading text-lg">Why this verdict?</div>
+                    <p className="text-sm text-pencil">
+                      {combined.rationale}
+                    </p>
+                  </div>
                 </div>
               )}
 
               {/* Original + Grad-CAM side-by-side */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="card-padded">
-                  <div className="text-sm font-semibold mb-3">Original image</div>
-                  <div className="rounded-lg overflow-hidden border
-                                  border-surface-200 dark:border-surface-700
-                                  bg-surface-50 dark:bg-surface-900">
-                    <img src={previewUrl} alt=""
-                         className="w-full h-auto block" />
+                <div className="rotate-[-1]">
+                  <div className="card-padded">
+                    <div className="text-sm font-semibold mb-3 font-heading text-lg">Original image</div>
+                    <div className="wobbly-4 overflow-hidden border-2 border-pencil
+                                    bg-paper">
+                      <img src={previewUrl} alt=""
+                           className="w-full h-auto block" />
+                    </div>
                   </div>
                 </div>
 
-                <div className="card-padded">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="text-sm font-semibold">Grad-CAM heatmap</div>
-                    <button
-                      onClick={() => setShowHeatmap((s) => !s)}
-                      className="btn-ghost text-xs px-2 py-1"
-                    >
-                      {showHeatmap
-                        ? <><EyeOff className="w-3.5 h-3.5" /> Hide</>
-                        : <><Eye className="w-3.5 h-3.5" /> Show</>}
-                    </button>
+                <div className="rotate-1">
+                  <div className="card-padded">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-sm font-semibold font-heading text-lg">Grad-CAM heatmap</div>
+                      <button
+                        onClick={() => setShowHeatmap((s) => !s)}
+                        className="btn-ghost text-xs px-2 py-1"
+                      >
+                        {showHeatmap
+                          ? <><EyeOff className="w-3.5 h-3.5" /> Hide</>
+                          : <><Eye className="w-3.5 h-3.5" /> Show</>}
+                      </button>
+                    </div>
+                    {heatmapUrl ? (
+                      <div className={cn(
+                        'wobbly-3 overflow-hidden border-2 border-pencil bg-paper transition',
+                        'border-pencil'
+                      )}>
+                        {showHeatmap && (
+                          <img src={heatmapUrl} alt="Grad-CAM heatmap"
+                               className="w-full h-auto block" />
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-pencil/60
+                                    wobbly-2 border-2 border-dashed
+                                    border-pencil p-8 text-center">
+                        No heatmap returned by the backend.
+                      </div>
+                    )}
                   </div>
-                  {heatmapUrl ? (
-                    <div className={cn(
-                      'rounded-lg overflow-hidden border bg-surface-50 '
-                      + 'dark:bg-surface-900 transition',
-                      'border-surface-200 dark:border-surface-700'
-                    )}>
-                      {showHeatmap && (
-                        <img src={heatmapUrl} alt="Grad-CAM heatmap"
-                             className="w-full h-auto block" />
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-surface-500 dark:text-surface-400
-                                    rounded-lg border border-dashed
-                                    border-surface-300 dark:border-surface-700
-                                    p-8 text-center">
-                      No heatmap returned by the backend.
-                    </div>
-                  )}
                 </div>
               </div>
 
               {/* Detailed analysis accordion */}
-              <div>
-                <div className="text-sm font-semibold mb-3">Detailed analysis</div>
+              <div className="rotate-[-1]">
+                <div className="text-sm font-semibold mb-3 font-heading text-lg">Detailed analysis</div>
                 <Accordion
                   items={[
                     {

@@ -13,13 +13,10 @@ export default function VerdictBadge({ verdict, confidence, size = 'md' }) {
   const isFake = v === 'AI-GENERATED';
 
   const palette = isReal
-    ? 'bg-emerald-50 text-emerald-700 ring-emerald-200 '
-    + 'dark:bg-emerald-900/30 dark:text-emerald-300 dark:ring-emerald-800'
+    ? 'bg-ink/10 text-ink ring-ink/30 '
     : isFake
-      ? 'bg-red-50 text-red-700 ring-red-200 '
-      + 'dark:bg-red-900/30 dark:text-red-300 dark:ring-red-800'
-      : 'bg-surface-100 text-surface-700 ring-surface-200 '
-      + 'dark:bg-surface-700 dark:text-surface-200 dark:ring-surface-600';
+      ? 'bg-marker/10 text-marker ring-marker/30 '
+      : 'bg-pencil/10 text-pencil ring-pencil/30 ';
 
   const sizes = {
     sm: 'text-xs px-2 py-0.5 gap-1',
@@ -33,7 +30,7 @@ export default function VerdictBadge({ verdict, confidence, size = 'md' }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full font-semibold ring-1',
+        'inline-flex items-center wobbly-2 font-semibold border-2',
         palette,
         sizes[size]
       )}
@@ -47,4 +44,5 @@ export default function VerdictBadge({ verdict, confidence, size = 'md' }) {
       )}
     </span>
   );
+
 }
