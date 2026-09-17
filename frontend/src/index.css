@@ -5,10 +5,57 @@
 @import url('https://fonts.googleapis.com/css2?family=Kalam:wght@700&family=Patrick+Hand&display=swap');
 
 :root {
+  --color-paper: 253 251 247;
+  --color-card: 255 255 255;
+  --color-pencil: 45 45 45;
+  --color-shadow: 45 45 45;
+  --color-ink: 45 93 161;
+  --color-marker: 220 67 67;
+  --color-surface-50: 248 250 252;
+  --color-surface-100: 241 245 249;
+  --color-surface-200: 226 232 240;
+  --color-surface-300: 203 213 225;
+  --color-surface-400: 148 163 184;
+  --color-surface-500: 100 116 139;
+  --color-surface-600: 71 85 105;
+  --color-surface-700: 51 65 85;
+  --color-surface-800: 30 41 59;
+  --color-surface-900: 15 23 42;
+  --color-brand-50: 239 246 255;
+  --color-brand-200: 191 219 254;
+  --color-brand-300: 147 197 253;
+  --color-brand-600: 37 99 235;
+  --color-brand-700: 29 78 216;
+  --color-brand-900: 30 58 138;
   --wobble-1: 255px 15px 225px 15px / 15px 225px 15px 255px;
   --wobble-2: 15px 225px 15px 255px / 255px 15px 225px 15px;
   --wobble-3: 225px 15px 255px 15px / 15px 255px 15px 225px;
   --wobble-4: 15px 255px 15px 225px / 225px 15px 255px 15px;
+}
+
+.dark {
+  --color-paper: 23 26 31;
+  --color-card: 31 36 43;
+  --color-pencil: 226 232 240;
+  --color-shadow: 8 11 15;
+  --color-ink: 96 165 250;
+  --color-marker: 248 113 113;
+  --color-surface-50: 248 250 252;
+  --color-surface-100: 51 65 85;
+  --color-surface-200: 71 85 105;
+  --color-surface-300: 100 116 139;
+  --color-surface-400: 148 163 184;
+  --color-surface-500: 148 163 184;
+  --color-surface-600: 203 213 225;
+  --color-surface-700: 51 65 85;
+  --color-surface-800: 31 36 43;
+  --color-surface-900: 23 26 31;
+  --color-brand-50: 30 58 138;
+  --color-brand-200: 96 165 250;
+  --color-brand-300: 147 197 253;
+  --color-brand-600: 96 165 250;
+  --color-brand-700: 147 197 253;
+  --color-brand-900: 30 58 138;
 }
 
 /* --- Base ---------------------------------------------------------------- */
@@ -20,11 +67,9 @@ html, body, #root {
 body {
   @apply bg-paper text-pencil antialiased;
   font-family: 'Patrick Hand', cursive;
-  background-image: radial-gradient(#e5e0d8 1px, transparent 1px);
+  background-image: radial-gradient(rgb(var(--color-surface-200) / 0.65) 1px, transparent 1px);
   background-size: 24px 24px;
 }
-
-/* Removing dark mode as the design system is light-mode specific */
 
 /* Scrollbar polish */
 ::-webkit-scrollbar {
@@ -36,6 +81,10 @@ body {
 }
 ::-webkit-scrollbar-thumb {
   @apply bg-pencil/20 rounded-full;
+}
+
+.dark .bg-white {
+  background-color: rgb(var(--color-card) / 1);
 }
 
 /* --- Component helpers --------------------------------------------------- */
@@ -62,7 +111,8 @@ body {
     transition: all 100ms ease-in-out;
   }
   .btn-primary:hover {
-    @apply shadow-[2px_2px_0px_0px_#2d2d2d] translate-x-[2px] translate-y-[2px];
+    box-shadow: 2px 2px 0 rgb(var(--color-shadow) / 1);
+    @apply translate-x-[2px] translate-y-[2px];
   }
   .btn-primary:active {
     @apply shadow-none translate-x-[4px] translate-y-[4px];

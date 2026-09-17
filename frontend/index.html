@@ -12,6 +12,15 @@
     />
     <title>DeepGuard — AI Image Detector</title>
     <meta name="description" content="Detect AI-generated images with a CNN + EXIF + FFT pipeline." />
+    <script>
+      (() => {
+        const saved = localStorage.getItem('deepguard-theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved === 'dark' || saved === 'light' ? saved : (prefersDark ? 'dark' : 'light');
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

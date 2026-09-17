@@ -4,9 +4,12 @@ import {
   Files,
   History,
   BarChart3,
+  Moon,
   ShieldCheck,
+  Sun,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 const navItems = [
   { to: '/',        label: 'Analyze',     icon: Upload,   end: true },
@@ -16,20 +19,20 @@ const navItems = [
 ];
 
 export default function Sidebar() {
+  const { theme, toggleTheme } = useTheme();
+
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col
-                      bg-white dark:bg-surface-800
-                      border-r border-surface-200 dark:border-surface-700">
+                      bg-card border-r border-surface-200">
       {/* Brand */}
-      <div className="h-16 flex items-center gap-3 px-6 border-b
-                      border-surface-200 dark:border-surface-700">
+      <div className="h-16 flex items-center gap-3 px-6 border-b border-surface-200">
         <div className="w-9 h-9 rounded-lg bg-brand-600 grid place-items-center
                         text-white shadow-sm">
           <ShieldCheck className="w-5 h-5" />
         </div>
         <div className="leading-tight">
           <div className="text-sm font-semibold">DeepGuard</div>
-          <div className="text-xs text-surface-500 dark:text-surface-400">
+          <div className="text-xs text-surface-500">
             AI Image Detector
           </div>
         </div>
@@ -60,8 +63,20 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="px-6 py-4 border-t border-surface-200 dark:border-surface-700
-                      text-xs text-surface-500 dark:text-surface-400">
+      <div className="px-3 pb-3">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium
+                     text-surface-600 transition-colors hover:bg-surface-100 hover:text-surface-900"
+          aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+        </button>
+      </div>
+
+      <div className="px-6 py-4 border-t border-surface-200 text-xs text-surface-500">
         <div>v0.1.0 — Local</div>
         <div className="mt-1">FastAPI backend @ :8000</div>
       </div>

@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 
 import './index.css';
 import App from './App.jsx';
+import { ThemeProvider } from './context/ThemeContext.jsx';
 import HomePage from './pages/HomePage.jsx';
 import BatchPage from './pages/BatchPage.jsx';
 import HistoryPage from './pages/HistoryPage.jsx';
@@ -27,22 +28,23 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RouterProvider router={router} />
-    {/* App-wide toast notifications. Theme-aware so it works in dark mode too. */}
-    <Toaster
-      position="top-right"
-      toastOptions={{
-        duration: 4000,
-        style: {
-          borderRadius: '10px',
-          background: '#1e293b',
-          color: '#f8fafc',
-          fontSize: '14px',
-          maxWidth: '420px',
-        },
-        success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
-        error:   { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
-      }}
-    />
+    <ThemeProvider>
+      <RouterProvider router={router} />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            borderRadius: '10px',
+            background: 'rgb(var(--color-card) / 1)',
+            color: 'rgb(var(--color-pencil) / 1)',
+            fontSize: '14px',
+            maxWidth: '420px',
+          },
+          success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
+          error:   { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
+        }}
+      />
+    </ThemeProvider>
   </StrictMode>
 );

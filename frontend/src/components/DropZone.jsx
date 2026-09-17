@@ -20,6 +20,7 @@ export default function DropZone({
   accept = 'image/*',
   label = 'Drag & drop an image here, or click to browse',
   validate = true,
+  prominent = false,
 }) {
   const inputRef = useRef(null);
   const [over, setOver] = useState(false);
@@ -68,6 +69,7 @@ export default function DropZone({
         'group cursor-pointer wobbly-1 border-4 border-pencil p-10',
         'flex flex-col items-center justify-center text-center',
         'transition-colors focus:outline-none focus:ring-2 focus:ring-ink/20',
+        prominent && 'min-h-[clamp(28rem,calc(100vh-13rem),48rem)] px-6 py-12 sm:px-10 sm:py-16',
         over
           ? 'border-ink bg-paper'
           : 'border-pencil bg-paper hover:border-marker'
@@ -81,14 +83,18 @@ export default function DropZone({
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
       />
-      <div className="w-14 h-14 wobbly-4 grid place-items-center mb-4
-                      bg-white border-2 border-pencil
-                      text-ink
-                      group-hover:scale-105 transition-transform">
-        {multiple ? <ImagePlus className="w-7 h-7" /> : <Upload className="w-7 h-7" />}
+      <div className={cn(
+        'wobbly-4 grid place-items-center mb-4 bg-white border-2 border-pencil text-ink group-hover:scale-105 transition-transform',
+        prominent ? 'h-20 w-20 mb-7 sm:h-24 sm:w-24' : 'h-14 w-14'
+      )}>
+        {multiple
+          ? <ImagePlus className={prominent ? 'h-10 w-10 sm:h-12 sm:w-12' : 'h-7 w-7'} />
+          : <Upload className={prominent ? 'h-10 w-10 sm:h-12 sm:w-12' : 'h-7 w-7'} />}
       </div>
-      <div className="text-sm font-medium">{label}</div>
-      <div className="mt-1 text-xs text-pencil/60">
+      <div className={cn('font-medium', prominent ? 'text-lg sm:text-2xl' : 'text-sm')}>
+        {label}
+      </div>
+      <div className={cn('mt-1 text-pencil/60', prominent ? 'text-sm sm:text-base' : 'text-xs')}>
         {multiple ? 'You can select multiple files · max 10MB each' : 'PNG, JPG, or WebP · max 10MB'}
       </div>
     </div>

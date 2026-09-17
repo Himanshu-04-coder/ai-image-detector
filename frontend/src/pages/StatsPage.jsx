@@ -143,7 +143,9 @@ function ConfusionHeatmap({ matrix }) {
               cursor={{ strokeDasharray: '3 3' }}
               contentStyle={{
                 borderRadius: 8,
-                border: '1px solid #e2e8f0',
+                border: '1px solid rgb(var(--color-surface-200) / 1)',
+                background: 'rgb(var(--color-card) / 1)',
+                color: 'rgb(var(--color-pencil) / 1)',
                 fontSize: 12,
               }}
               formatter={(value) => [value, 'Count']}
@@ -157,7 +159,7 @@ function ConfusionHeatmap({ matrix }) {
                 return (
                   <Cell key={i}
                         fill={`hsl(217, 91%, ${lightness}%)`}
-                        stroke="#1e293b" strokeOpacity={0.15} />
+                    stroke="rgb(var(--color-surface-900) / 1)" strokeOpacity={0.15} />
                 );
               })}
               <LabelList dataKey="value" position="center"
