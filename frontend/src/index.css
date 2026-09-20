@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@700&family=Patrick+Hand&display=swap');
-
 :root {
   --color-paper: 253 251 247;
   --color-card: 255 255 255;
@@ -66,7 +64,7 @@ html, body, #root {
 
 body {
   @apply bg-paper text-pencil antialiased;
-  font-family: 'Patrick Hand', cursive;
+  font-family: cursive;
   background-image: radial-gradient(rgb(var(--color-surface-200) / 0.65) 1px, transparent 1px);
   background-size: 24px 24px;
 }

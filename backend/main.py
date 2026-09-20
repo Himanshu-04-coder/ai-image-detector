@@ -144,6 +144,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
         "http://localhost:5177",
         "http://127.0.0.1:5177",
     ],
@@ -151,6 +153,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# app.use(cors({ origin: true }))
 
 # ---------------------------------------------------------------
 # Static files (uploads + heatmaps)
